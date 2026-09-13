@@ -110,7 +110,7 @@ scripts/  create_tables.py         dictionary -> DDL
           make_sample_data.py      an invented workbook shaped like the real export
           seed_demo.py             invented team work, through the same validated path the app uses
           anonymize.py             swap real staff names for invented ones before publishing
-tests/                             172 tests, 164 of which need no database
+tests/                             175 tests, 164 of which need no database
 docs/                              project charter and plan
 ```
 
@@ -155,7 +155,7 @@ are covered.
 pytest
 ```
 
-172 tests. They cover the thirteen cleaning rules, the key builder, the comparison, and
+175 tests. They cover the thirteen cleaning rules, the key builder, the comparison, and
 both ownership guards. The charter's success measure says no team field is ever changed by
 an import, *proven by an automated test* rather than by inspection. That test is
 `tests/test_gate.py`.
