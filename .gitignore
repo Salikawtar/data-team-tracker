@@ -1,0 +1,56 @@
+# WRITTEN BEFORE ANY OTHER FILE IN THIS REPO, ON PURPOSE.
+#
+# The project charter rules that the portfolio version of this tracker carries synthetic
+# or anonymized data only, and that the real ECCC export never leaves the working folder.
+# A .gitignore added later is a .gitignore added after the first accidental commit.
+#
+# EVERY COMMENT IS ON ITS OWN LINE, AND THAT IS NOT A STYLE CHOICE.
+# Git only treats # as a comment at the start of a line. An earlier version of this file
+# wrote `store/    # the database file`, which git read as a pattern named
+# "store/    # the database file" and matched nothing at all. The first `git status`
+# listed store/ as ready to commit, which is how it was found. Do not put a comment after
+# a pattern.
+
+# ---------------------------------------------------------------- real data, never commit
+
+# The real weekly timeline export.
+landing/
+
+# The database file and the CSV backups taken after every approved import.
+store/
+*.duckdb
+*.duckdb.wal
+
+# The reverse of the anonymisation: these map an invented name back to a real person.
+conf/name_map.local.json
+*.real.bak
+
+# Any workbook is assumed to be real until proven otherwise. The two exceptions are the
+# data dictionary, which is the contract, and the invented sample workbooks.
+*.xlsx
+!conf/data_dictionary.xlsx
+!sample_data/*.xlsx
+
+# ---------------------------------------------------------------- secrets
+.env
+.env.*
+!.env.example
+
+# ---------------------------------------------------------------- old manual backups
+
+# Dated copies of the whole project folder, from before this was under version control.
+# Committing them would put several copies of the project inside the repo.
+snapshots/
+
+# ---------------------------------------------------------------- ordinary noise
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+env/
+.ipynb_checkpoints/
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

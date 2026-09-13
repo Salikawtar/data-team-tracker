@@ -1,0 +1,54 @@
+name: tests
+
+# The original project had no version control and therefore no CI. This is the smallest
+# useful version of it: the ownership guards the charter calls a success measure are
+# checked on every push, rather than the last time somebody remembered to run them.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Install
+        run: pip install -r requirements.txt
+
+      - name: Tests
+        run: pytest -q
+
+      - name: The whole pipeline, end to end on invented data
+        run: |
+          python scripts/make_sample_data.py
+          python scripts/create_tables.py
+          python scripts/import_timeline.py --approve --by ci
+          python scripts/seed_demo.py
+
+      - name: Re-importing the same file must change nothing
+        run: |
+          before=$(python -c "
+          import sys; sys.path[:0] = ['src', 'conf', 'app']
+          from lib import db; import config
+          print(db.table_count(config.t('core', 'official_timeline')))")
+          python scripts/import_timeline.py --approve --by ci --force
+          after=$(python -c "
+          import sys; sys.path[:0] = ['src', 'conf', 'app']
+          from lib import db; import config
+          print(db.table_count(config.t('core', 'official_timeline')))")
+          echo "official_timeline: $before before, $after after"
+          test "$before" = "$after"
