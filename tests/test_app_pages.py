@@ -95,3 +95,40 @@ def test_home_shows_the_headline_numbers():
     rendered = " ".join(str(m.value) for m in at.markdown)
     for label in ("timeline items", "active work items", "update coverage"):
         assert label in rendered, f"the Home screen is missing its {label!r} figure"
+
+
+# ---------------------------------------------------------------- the empty deployment
+#
+# A fresh deployment has the code and the sample workbook and no database, because the
+# database is not in the repo. Two things have to be right about that, and neither was.
+
+
+def test_health_notices_that_the_tables_are_missing(tmp_path, monkeypatch):
+    """health() used to check only that the database opened.
+
+    Connecting to a DuckDB path that does not exist creates an empty database rather than
+    refusing, so `SELECT 1` succeeded and the screen then died on the first real query with
+    a raw catalog error instead of the message written for that case.
+    """
+    import config
+    from lib import db
+
+    # config reads TRACKER_DB when it is imported, and by now it has been, so the value is
+    # patched directly. Clearing the cached connection makes db open the new path.
+    monkeypatch.setattr(config, "DUCKDB_PATH", str(tmp_path / "empty.duckdb"))
+    db._connection.clear()
+    try:
+        ok, detail = db.health()
+        assert ok is False, "an empty database reported itself healthy"
+        assert "not in it" in detail
+        assert "create_tables" in detail
+    finally:
+        db._connection.clear()
+
+
+def test_the_demo_bootstrap_is_off_unless_asked(monkeypatch):
+    """On a laptop a missing database means a forgotten command, and being told is better
+    than having it silently papered over. Only a hosted copy sets TRACKER_DEMO."""
+    monkeypatch.delenv("TRACKER_DEMO", raising=False)
+    from lib import bootstrap
+    assert bootstrap.ensure() is False

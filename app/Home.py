@@ -8,13 +8,19 @@ Read only. Nothing on this page writes.
 
 import streamlit as st
 
-from lib import db, ui
+from lib import bootstrap, db, ui
 from tracker import team as T
 
 
 ui.page("Data Team Work Tracker",
         "Official milestones from the weekly import, joined to the Data Team's own work.")
 ui.sidebar_footer()
+
+# A hosted copy starts with no database, because the database is not in the repo. This
+# builds it from the sample workbook on first boot, and does nothing at all unless
+# TRACKER_DEMO is set. See lib/bootstrap.py.
+if bootstrap.ensure():
+    st.toast("Built the demo database from the sample workbook.")
 
 ok, detail = db.health()
 if not ok:

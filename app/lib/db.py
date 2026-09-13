@@ -167,13 +167,33 @@ def transaction():
 
 
 def health() -> tuple[bool, str]:
-    """Used by the Home screen so a connection problem reads as a message rather than a
-    stack trace."""
+    """Used by the Home screen so a problem reads as a message rather than a stack trace.
+
+    It checks that the tables are there, not just that the file opens. Those are different
+    failures and only one of them used to be caught: connecting to a DuckDB path that does
+    not exist creates an empty database rather than refusing, so `SELECT 1` succeeded and
+    the screen then died on the first real query with a raw catalog error. Asking for a
+    table the app actually needs is the check that means something.
+    """
     try:
         execute("SELECT 1")
-        return True, f"connected (duckdb: {os.path.basename(cfg().DUCKDB_PATH)})"
     except Exception as e:
         return False, str(e)[:400]
+
+    missing = []
+    for layer, name in (("core", "official_timeline"), ("core", "data_work_items"),
+                        ("core", "team_updates")):
+        try:
+            execute(f"SELECT 1 FROM {t(layer, name)} LIMIT 0")
+        except Exception:
+            missing.append(t(layer, name))
+
+    if missing:
+        return False, ("The database opened but these tables are not in it: "
+                       + ", ".join(missing)
+                       + ". Run scripts/create_tables.py, then scripts/import_timeline.py.")
+
+    return True, f"connected (duckdb: {os.path.basename(cfg().DUCKDB_PATH)})"
 
 
 # ------------------------------------------------------------------ reading

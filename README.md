@@ -110,7 +110,7 @@ scripts/  create_tables.py         dictionary -> DDL
           make_sample_data.py      an invented workbook shaped like the real export
           seed_demo.py             invented team work, through the same validated path the app uses
           anonymize.py             swap real staff names for invented ones before publishing
-tests/                             170 tests, 164 of which need no database
+tests/                             172 tests, 164 of which need no database
 docs/                              project charter and plan
 ```
 
@@ -155,19 +155,36 @@ are covered.
 pytest
 ```
 
-170 tests. They cover the thirteen cleaning rules, the key builder, the comparison, and
+172 tests. They cover the thirteen cleaning rules, the key builder, the comparison, and
 both ownership guards. The charter's success measure says no team field is ever changed by
 an import, *proven by an automated test* rather than by inspection. That test is
 `tests/test_gate.py`.
 
-164 of them need no database and no network. The other six render each screen headlessly
-and fail if it throws; they skip themselves until there is imported data to render, so run
-the four setup commands first if you want them.
+164 of them need no database and no network. The rest render each screen headlessly and
+fail if it throws; most skip themselves until there is imported data to render, so run the
+four setup commands first if you want them.
 
 That last file was added after three bugs shipped. The app had been checked by confirming
 the server answered on its port, which it did: a Streamlit page renders after that, so an
 exception becomes a red box on the screen rather than a failed start. Every screen was
 broken and nothing said so.
+
+## Running it somewhere other than a laptop
+
+The database is not in the repo, so a fresh deployment has the code and the sample workbook
+and no tables. Set one environment variable and the app builds its own on first boot:
+
+```
+TRACKER_DEMO=1
+```
+
+That runs the four setup commands in process, once, only when the tables are missing. It is
+opt in because on a laptop a missing database means a forgotten command, and being told is
+better than having it quietly papered over.
+
+On Streamlit Community Cloud: point it at this repo, main branch, `app/Home.py`, and put
+`TRACKER_DEMO = "1"` in the app's secrets. The free tier sleeps after a while and rebuilds
+the database when it wakes, which is fine, because everything in it is invented anyway.
 
 ## Notes on the data
 
